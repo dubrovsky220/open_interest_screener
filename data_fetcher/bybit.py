@@ -86,7 +86,7 @@ async def fetch_bybit_data(symbol: str, interval: str = "5", limit: int = 5) -> 
             result.append({
                 "symbol": symbol,
                 "timestamp": max(oi_point["timestamp"], pv_point["timestamp"]),
-                "oi": oi_point["oi"],
+                "oi": oi_point["oi"] * pv_point["price"],
                 "price": pv_point["price"],
                 "volume": pv_point["volume"]
             })
