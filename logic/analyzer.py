@@ -4,6 +4,8 @@ import asyncio
 def analyze_signal(
         symbol_data: list[dict],
         min_growth_oi: float = 3.0,
+        min_growth_price: float = 0,
+        min_volume_ratio: float = 1,
         window: int = 20,
         interval: int = 5
 ) -> dict | None:
@@ -39,7 +41,9 @@ def analyze_signal(
     price_growth = ((price_end - price_start) / price_start) * 100
     volume_growth_ratio = volume_end / volume_start if volume_start != 0 else float("inf")
 
-    if oi_growth >= min_growth_oi:
+    if oi_growth >= min_growth_oi\
+            and price_growth >= min_growth_price\
+            and volume_growth_ratio >= min_volume_ratio:
         return {
             "symbol": last.get("symbol"),
             "oi_growth": round(oi_growth, 2),
