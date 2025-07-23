@@ -7,3 +7,7 @@ RUN_EVERY_SECONDS = 60     # частота запуска
 EXCHANGES = ["Binance", "ByBit"]
 
 DATABASE_URL = "postgresql+asyncpg://postgres:79134628@localhost:5432/open_interest_screener"
+
+
+DEPOSIT = 10.00  # баланс на бирже в USDT
+RISK = 10  # потери при срабатывании стоп-лосса в процентах

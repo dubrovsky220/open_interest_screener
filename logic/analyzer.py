@@ -6,6 +6,8 @@ def analyze_signal(
         min_growth_oi: float = 3.0,
         min_growth_price: float = 0,
         min_volume_ratio: float = 1,
+        balance: float = 1000,
+        risk: float = 1,
         window: int = 20,
         interval: int = 5
 ) -> dict | None:
@@ -44,11 +46,19 @@ def analyze_signal(
     if oi_growth >= min_growth_oi\
             and price_growth >= min_growth_price\
             and volume_growth_ratio >= min_volume_ratio:
+
+        stop_loss = price_start
+        risk_usdt = (risk / 100) * balance
+        stop_loss_distance = (1 - stop_loss/price_end)
+        position_sum = risk_usdt / stop_loss_distance
+
         return {
             "symbol": last.get("symbol"),
             "oi_growth": round(oi_growth, 2),
             "price_growth": round(price_growth, 2),
-            "volume_growth_ratio": round(volume_growth_ratio, 2)
+            "volume_growth_ratio": round(volume_growth_ratio, 2),
+            "stop_loss": stop_loss,
+            "position_sum": round(position_sum, 2),
         }
 
     return None

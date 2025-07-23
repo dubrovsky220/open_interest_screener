@@ -29,13 +29,17 @@ def format_signal_message(
     price_growth: float,
     volume_growth_ratio: float,
     signal_number: int,
+    position_sum: float,
+    stop_loss: float,
 ) -> str:
     coinglass_link = f"https://www.coinglass.com/tv/{exchange}_{symbol}"
     message = (
         f"<b>{exchange}</b> – <b>{interval_minutes}м</b> – <a href='{coinglass_link}'>{symbol}</a>\n"
         f"ОИ вырос на <b>{oi_growth:.2f}%</b>\n"
         f"Изменение цены: <b>{price_growth:+.2f}%</b>\n"
-        f"Изменение объема: <b>x{volume_growth_ratio:.1f}</b>\n"
+        f"Изменение объема: <b>x{volume_growth_ratio:.2f}</b>\n"
         f"Сигнал за сутки: <b>{signal_number}</b>\n\n"
+        f"Сумма в позицию: <b>{position_sum:.2f}</b> USDT\n"
+        f"Стоп-лосс: <b>{stop_loss}</b>\n"
     )
     return message
