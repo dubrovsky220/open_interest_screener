@@ -1,6 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from models import SignalData
+from db.models import SignalData
 from datetime import datetime
 
 async def save_signal(session: AsyncSession, signal: dict):
