@@ -1,6 +1,8 @@
 import aiohttp
 import logging
 
+from sqlalchemy.util import symbol
+
 BINANCE_BASE_URL = "https://fapi.binance.com"
 logger = logging.getLogger("binance")
 
@@ -79,6 +81,24 @@ async def fetch_binance_data(symbol: str, period: str = "5m", limit: int = 5) ->
         logger.error(f"Error fetching Binance data for {symbol}: {e}")
         return None
 
+async def get_binance_symbols():
+    try:
+        url = "https://fapi.binance.com/fapi/v1/exchangeInfo"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                data = await resp.json()
+                symbols = [
+                    item["symbol"] for item in data["symbols"]
+                    if item["contractType"] == "PERPETUAL" and item["status"] == "TRADING"
+                ]
+
+                return symbols
+
+    except Exception as e:
+        logger.error(f"Error fetching Binance symbols: {e}")
+        return None
+
+
 
 if __name__ == "__main__":
     import asyncio
@@ -87,6 +107,8 @@ if __name__ == "__main__":
 
     async def test():
         result = await fetch_binance_data("BTCUSDT")
+        symbols = await get_binance_symbols()
         print(result)
+        print(symbols)
 
     asyncio.run(test())

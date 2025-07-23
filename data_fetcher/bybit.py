@@ -97,6 +97,23 @@ async def fetch_bybit_data(symbol: str, interval: str = "5", limit: int = 5) -> 
         logger.error(f"Error fetching ByBit data for {symbol}: {e}")
         return None
 
+async def get_bybit_symbols():
+    try:
+        url = "https://api.bybit.com/v5/market/instruments-info?category=linear"
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as resp:
+                data = await resp.json()
+                symbols = [
+                    item["symbol"] for item in data["result"]["list"]
+                    if item["status"] == "Trading"
+                ]
+                return symbols
+
+    except Exception as e:
+        logger.error(f"Error fetching ByBit symbols: {e}")
+        return None
+
+
 
 if __name__ == "__main__":
     import asyncio
@@ -105,6 +122,8 @@ if __name__ == "__main__":
 
     async def test():
         result = await fetch_bybit_data("BTCUSDT")
+        symbols = await get_bybit_symbols()
         print(result)
+        print(symbols)
 
     asyncio.run(test())
