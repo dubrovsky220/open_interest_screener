@@ -2,6 +2,8 @@ import aiohttp
 import logging
 
 BYBIT_BASE_URL = "https://api.bybit.com"
+BYBIT_WS_URL = "wss://stream.bybit.com/v5/public/linear"
+
 INTERVAL_MAPPING = {
     "1": "1min",
     "3": "3min",
@@ -15,6 +17,7 @@ INTERVAL_MAPPING = {
 }
 
 logger = logging.getLogger("bybit")
+
 
 # Получение истории Open Interest
 async def fetch_open_interest(symbol: str, interval: str = "5", limit: int = 5) -> list[dict] | None:
@@ -44,7 +47,7 @@ async def fetch_open_interest(symbol: str, interval: str = "5", limit: int = 5) 
             return result
 
 
-# Получение истории цены и объема (Klines)
+# Получение истории цены и объема с CVD
 async def fetch_price_and_volume(symbol: str, interval: str = "5", limit: int = 5) -> list[dict] | None:
     url = f"{BYBIT_BASE_URL}/v5/market/kline"
     params = {
@@ -60,14 +63,29 @@ async def fetch_price_and_volume(symbol: str, interval: str = "5", limit: int = 
                 logger.warning(f"No kline data for {symbol}")
                 return None
 
-            result = [
-                {
-                    "timestamp": int(row[0]),
-                    "price": float(row[4]),     # close
-                    "volume": float(row[5])     # volume
-                }
-                for row in reversed(data["result"]["list"])
-            ]
+            result = []
+            for row in reversed(data["result"]["list"]):  # от старых к новым
+                ts = int(row[0])
+                open_price = float(row[1])
+                high = float(row[2])
+                low = float(row[3])
+                close_price = float(row[4])
+                volume = float(row[5])
+
+                # Замена vd, так как bybit не позволяет получить buy/sell volume
+                demand_signal = (close_price - open_price) * volume
+
+                result.append({
+                    "timestamp": ts,
+                    "open": open_price,
+                    "high": high,
+                    "low": low,
+                    "close": close_price,
+                    "price": close_price,  # совместимость
+                    "volume": volume,
+                    "demand_signal": demand_signal
+                })
+
             return result
 
 
@@ -86,9 +104,14 @@ async def fetch_bybit_data(symbol: str, interval: str = "5", limit: int = 5) -> 
             result.append({
                 "symbol": symbol,
                 "timestamp": max(oi_point["timestamp"], pv_point["timestamp"]),
-                "oi": oi_point["oi"] * pv_point["price"],
+                "oi": oi_point["oi"] * pv_point["price"],  # значение в долларах
                 "price": pv_point["price"],
-                "volume": pv_point["volume"]
+                "volume": pv_point["volume"],
+                "demand_signal": pv_point["demand_signal"],
+                "open": pv_point["open"],
+                "high": pv_point["high"],
+                "low": pv_point["low"],
+                "close": pv_point["close"]
             })
 
         return result
@@ -114,7 +137,6 @@ async def get_bybit_symbols():
         return None
 
 
-
 if __name__ == "__main__":
     import asyncio
 
@@ -127,3 +149,5 @@ if __name__ == "__main__":
         print(symbols)
 
     asyncio.run(test())
+
+
