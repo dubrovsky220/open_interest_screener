@@ -2,6 +2,8 @@ import asyncio
 import logging
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+from db.engine import init_db
 from scheduler.job import run_signal_job
 from config.config import RUN_EVERY_SECONDS
 
@@ -12,6 +14,8 @@ logging.basicConfig(
 )
 
 async def main():
+    await init_db()
+
     scheduler = AsyncIOScheduler()
     scheduler.add_job(run_signal_job, "interval", seconds=RUN_EVERY_SECONDS)
     scheduler.start()
